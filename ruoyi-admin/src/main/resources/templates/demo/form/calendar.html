@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<meta charset='utf-8' />
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('新增订舱')" />
+    <!--引入FullCalendar css和js 自己去FullCalendar官网下载-->
+    <link href='/cargo/css/main.css' rel='stylesheet' />
+    <script src="/cargo/js/main.js"/>
+
+    <!--加载日历里面的航班数据-->
+    <script type="text/javascript">
+        // <div id='Calendar'></div> 官网是放这里，我放这里不行，所以我放下面了
+    </script>
+    <style>
+        body {
+            margin: 40px 10px;
+            padding: 0;
+            font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #Calendar {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        /* Event 参数 className 的值 */
+        .doing:before {
+            content:"【 未完成 】";
+            background-color:yellow;
+            color:red;
+            text-align:center;
+            font-weight:bold;
+        }
+    </style>
+</head>
+
+<body class="gray-bg">
+<div class="wrapper animated fadeInRight ">
+    <div hidden class="form-group" style="margin-left: 75px">
+        <a  class="btn btn-success disabled" id="bookFlightAdd" name="bookFlightAdd" onclick="$.operate.add()" shiro:hasPermission="freight:bookFlight:add">
+            <i class="fa fa-plus"></i> 订舱
+        </a>
+        <input type="hidden" id="flightData" value="">
+        <a display  id="bookFlightHidden" name="bookFlightHidden" onclick="$.operate.addFlightData($('#flightData').val())" shiro:hasPermission="freight:bookFlight:add"></a>
+    </div>
+
+    <!--航班日历-->
+    <div id='Calendar'></div>
+</div>
+
+<th:block th:include="include :: footer" />
+<script type="text/javascript">
+    var prefix = ctx + "freight/bookFlight";
+
+    <!--加载日历里面的航班数据-->
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('Calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: windowSize(), //日历加载时的初始视图
+            timeZone: 'UTC',//时区
+            editable: false,//是否可以修改日历事件
+            eventStartEditable:false,//允许事件的开始时间可通过拖动进行编辑
+            eventDurationEditable:false,//允许通过调整大小来更改事件的持续时间
+            themeSystem: 'bootstrap',//主题
+            locale: 'zh',//语言
+            headerToolbar: {//头部工具栏
+                left: 'prev,next today',
+                center: 'title',
+                right: headerToolbarRight()
+            },
+            dateClick: function(info) {//鼠标点击
+                info.dayEl.style.backgroundColor = '#00FF99';
+            },
+            buttonText:{//按钮文字
+                today:    '今天',
+                month:    '月',
+                week:     '周',
+                day:      '天',
+            },
+            initialDate: new Date(),//初始化时间
+            navLinks: true, // 可以点击天/周的名称来浏览视图吗
+            dayMaxEvents: true, // 允许 "更多" 链接 当太多的事件
+            dayMaxEventRows: true, // 用于所有非时间网格视图
+            moreLinkClick:"week",  //点击more按钮时候，跳到什么视图
+            //鼠标悬浮提示 event.event.title
+            eventMouseEnter : function( event ) {
+                $(".fc-daygrid-event").attr("title",'点击订舱');
+            },
+
+            //进入日历界面进行加载添加过的数据
+            events: function( fetchInfo, successCallback, failureCallback ){
+                var events = [];
+                $.ajax({
+                    type:"POST",
+                    url:prefix+"/viewData",
+                    dataType:"json",
+                    success:function(result){
+                        var jobScheduleList =  result;
+                        if(jobScheduleList.length > 1){
+                            $.each(jobScheduleList,function(i,j){
+                                events.push({
+                                    //id:j.id,
+                                    title: j.name,
+                                    //url: prefix+j.url,//设置链接
+                                    content:'$.operate.add()',//内容（我自己定义的，框架没有）
+                                    imageUrl:'/profile/'+j.imgUrl,//图片链接（我自己定义的，框架没有）
+                                    color: 'pink',//设置颜色
+                                    start: new Date(j.startDate).format('yyyy-MM-dd'), // 解析时间
+                                    //end:new Date(j.endDate).format('yyyy-MM-dd')
+                                    //className: 'doing',//设置类名
+                                    //backgroundColor: 'gray',//设置背景颜色
+                                });
+                            })
+                            //回调渲染日历
+                            successCallback(events);
+                        }
+                    },
+                    error:function(){
+                        //出现错误回调
+                    },
+                })
+            },
+
+            //航空公司图片注入
+            eventContent: function(arg) {
+                let italicEl = document.createElement('span')
+                if (arg.event.extendedProps.isUrgent) {
+                    italicEl.onclick(setTimeout());
+                    italicEl.innerHTML = '<img src="'+arg.event.extendedProps.imageUrl+'" width="30px" height="30px" style="border-radius: 15px;">'+' '+'<span>'+arg.event.title+'</span>';
+                } else {
+                    function abc() {
+                        $('#flightData').val(arg.event.title);
+                        // IE浏览器
+                        if(document.all) {
+                            document.getElementById("bookFlightHidden").click();
+                        }
+                        // 其它浏览器
+                        else {
+                            var e = document.createEvent("MouseEvents");
+                            e.initEvent("click", true, true);
+                            document.getElementById("bookFlightHidden").dispatchEvent(e);
+                        }
+                    }
+                    italicEl.onclick=abc;
+                    italicEl.innerHTML = '<img src="'+arg.event.extendedProps.imageUrl+'" width="30px" height="30px" style="border-radius: 15px;">'+' '+'<span>'+arg.event.title+'</span>';
+                }
+                let arrayOfDomNodes = [ italicEl ]
+                return { domNodes: arrayOfDomNodes }
+            },
+        });
+        calendar.render();
+    });
+
+    //判断窗口大小来显示不同的视图（手机端不支持月视图）
+    function windowSize(){
+        if(window. innerWidth< 800){
+            return 'dayGridWeek';
+        } else {
+            return 'dayGridMonth';
+        }
+    }
+    //判断窗口大小来设置头工具栏（手机端不支持月视图）
+    function headerToolbarRight(){
+        if(window. innerWidth< 800){
+            return 'dayGridWeek,dayGridDay';
+        } else {
+            return 'dayGridMonth,dayGridWeek,dayGridDay';
+        }
+    }
+
+    //将数据库的时间戳转成 字符串
+    Date.prototype.format = function(format) {
+        var o = {
+            "M+": this.getMonth() + 1,
+            "d+": this.getDate(),
+            "h+": this.getHours(),
+            "m+": this.getMinutes(),
+            "s+": this.getSeconds(),
+            "q+": Math.floor((this.getMonth() + 3) / 3),
+            "S": this.getMilliseconds()
+        }
+        if (/(y+)/.test(format)) {
+            format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(format)) {
+                format = format.replace(RegExp.$1, RegExp.$1.length == 1 ? o[k] : ("00" + o[k]).substr(("" + o[k]).length));
+            }
+        }
+        return format;
+    }
+
+    $(function () {
+        var options = {
+            createUrl: prefix + "/add",
+            createCustomUrl: prefix + "/customAdd/{data}",
+            modalName: "订舱",
+        };
+        $.table.init(options);
+    });
+</script>
+</body>
+</html>
