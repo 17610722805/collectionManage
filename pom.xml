@@ -12,7 +12,7 @@
     <description>催提管理系统</description>
     
     <properties>
-        <ruoyi.version>4.7.4</ruoyi.version>
+        <collection.version>4.7.4</collection.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
@@ -203,12 +203,12 @@
     </dependencyManagement>
 
     <modules>
-        <module>ruoyi-admin</module>
-        <module>ruoyi-framework</module>
-        <module>ruoyi-system</module>
-        <module>ruoyi-quartz</module>
-        <module>ruoyi-generator</module>
-        <module>ruoyi-common</module>
+        <module>collection-admin</module>
+        <module>collection-framework</module>
+        <module>collection-system</module>
+        <module>collection-quartz</module>
+        <module>collection-generator</module>
+        <module>collection-common</module>
     </modules>
     <packaging>pom</packaging>
 
