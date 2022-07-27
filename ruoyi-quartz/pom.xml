@@ -31,8 +31,8 @@
 
         <!-- 通用工具-->
         <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>ruoyi-common</artifactId>
+            <groupId>com.collection</groupId>
+            <artifactId>collection-common</artifactId>
         </dependency>
 
     </dependencies>

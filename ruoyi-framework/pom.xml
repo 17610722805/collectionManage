@@ -73,8 +73,8 @@
 
         <!-- 系统模块-->
         <dependency>
-            <groupId>com.ruoyi</groupId>
-            <artifactId>ruoyi-system</artifactId>
+            <groupId>com.collection</groupId>
+            <artifactId>collection-system</artifactId>
         </dependency>
 
     </dependencies>
